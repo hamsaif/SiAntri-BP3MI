@@ -6,7 +6,7 @@ let counter = 0;
 let dataAntrian = [];
 
 // link spredsheet : 
-//https://docs.google.com/spreadsheets/d/1u8QD8TtkEezK5TMr-gdLrtC_Zmpl-CTj3Xh4nqPjyao/edit?gid=304885161#gid=304885161
+// https://docs.google.com/spreadsheets/d/1u8QD8TtkEezK5TMr-gdLrtC_Zmpl-CTj3Xh4nqPjyao/edit?usp=sharing
 // id dr link spreadsheet
 const SPREADSHEET_ID = "1u8QD8TtkEezK5TMr-gdLrtC_Zmpl-CTj3Xh4nqPjyao";
 
