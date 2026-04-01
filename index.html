@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>Form Antrian</h2>
+
+    <form id="form">
+
+        <input type="text" id="nama" placeholder="Nama" required><br><br>
+
+        <select id="jk" required>
+            <option value="">Jenis Kelamin</option>
+            <option value="L">Laki-laki</option>
+            <option value="P">Perempuan</option>
+        </select><br><br>
+
+        <input type="text" id="provinsi" placeholder="Provinsi" required><br><br>
+        <input type="text" id="daerah" placeholder="Daerah Asal" required><br><br>
+        <input type="text" id="paspor" placeholder="No Paspor" required><br><br>
+        <input type="text" id="negara" placeholder="Negara Penempatan" required><br><br>
+        <input type="text" id="sektor" placeholder="Sektor Pekerjaan" required><br><br>
+        <input type="text" id="perusahaan" placeholder="Perusahaan" required><br><br>
+        <input type="text" id="pendidikan" placeholder="Pendidikan" required><br><br>
+        <input type="date" id="tgl" required><br><br>
+        <input type="text" id="hp" placeholder="No HP" required><br><br>
+        <select name="" id="skema" required>
+            <option value="">Pilih Skema</option>
+            <option value="SSW Mandiri">SSW Mandiri</option>
+            <option value="Mandiri">Mandiri</option>
+            <option value="P to P">P to P</option>
+        </select><br><br>
+
+        <button type="submit">Ambil Antrian</button>
+    </form>
+
+    <div id="hasil"></div>
+
+    <script>
+        document.getElementById("form").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const data = {
+                nama: document.getElementById("nama").value,
+                jk: document.getElementById("jk").value,
+                provinsi: document.getElementById("provinsi").value,
+                daerah: document.getElementById("daerah").value,
+                paspor: document.getElementById("paspor").value,
+                negara: document.getElementById("negara").value,
+                sektor: document.getElementById("sektor").value,
+                perusahaan: document.getElementById("perusahaan").value,
+                pendidikan: document.getElementById("pendidikan").value,
+                tgl: document.getElementById("tgl").value,
+                hp: document.getElementById("hp").value,
+                skema: document.getElementById("skema").value
+            };
+
+            fetch("http://localhost:3000/antrian", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(res => {
+                    document.getElementById("hasil").innerHTML = `
+          <h3>Nomor Antrian: ${res.nomor}</h3>
+          <p>Nama: ${data.nama}</p>
+          <p>Mohon tunggu nomor dipanggil</p>
+        `;
+                });
+        });
+    </script>
+</body>
+
+</html>
