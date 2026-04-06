@@ -10,46 +10,200 @@
 <body>
     <h2>Form Antrian</h2>
 
-    <form id="form">
+    <form id="form" autocomplete="off">
 
         <input type="text" id="nama" placeholder="Nama" required><br><br>
 
         <select id="jk" required>
-            <option value="">Jenis Kelamin</option>
+            <option value="">-- Jenis Kelamin --</option>
             <option value="L">Laki-laki</option>
             <option value="P">Perempuan</option>
         </select><br><br>
 
-        <input type="text" id="provinsi" placeholder="Provinsi" required><br><br>
-        <input type="text" id="daerah" placeholder="Daerah Asal" required><br><br>
-        <input type="text" id="paspor" placeholder="No Paspor" required><br><br>
-        <input type="text" id="negara" placeholder="Negara Penempatan" required><br><br>
-        <input type="text" id="sektor" placeholder="Sektor Pekerjaan" required><br><br>
+        <select name="" id="provinsi" required>
+            <option value="">-- Pilih Provinsi --</option>
+            <option value="Lampung">Lampung</option>
+        </select>
+        <select name="" id="kabupaten" required disabled>
+            <option value="">-- Pilih Kabupaten --</option>
+        </select><br><br>
+        <input type="text" id="alamat" placeholder="Alamat Lengkap" required><br><br>
+        <input type="text" id="paspor" placeholder="No Paspor" maxlength="9" minlength="9" required><br><br>
+        <select name="" id="negara" >
+            <option value="">-- Negara Penempatan --</option>
+        </select><br><br>
+        <select name="" id="sektor">
+            <option value="">-- Pilih Sektor Pekrjaan --</option>
+        </select><br><br>
         <input type="text" id="perusahaan" placeholder="Perusahaan" required><br><br>
-        <input type="text" id="pendidikan" placeholder="Pendidikan" required><br><br>
+        <select name="" id="pendidikan">
+            <option value="">Pendidikan</option>
+            <option value="SMA Sederajat">SMA Sederajat</option>
+            <option value="D1">D1</option>
+            <option value="D2">D2</option>
+            <option value="D3">D3</option>
+            <option value="D4">D4</option>
+            <option value="S1">S1</option>
+            <option value="S2">S2</option>
+            <option value="S3">S3</option>
+        </select><br><br>
         <input type="date" id="tgl" required><br><br>
         <input type="text" id="hp" placeholder="No HP" required><br><br>
         <select name="" id="skema" required>
-            <option value="">Pilih Skema</option>
+            <option value="">-- Pilih Skema --</option>
             <option value="SSW Mandiri">SSW Mandiri</option>
             <option value="Mandiri">Mandiri</option>
-            <option value="P to P">P to P</option>
+            <option value="Cuti">Cuti</option>
         </select><br><br>
 
-        <button type="submit">Ambil Antrian</button>
+        <button type="submit" id="btn">Ambil Antrian</button>
     </form>
 
     <div id="hasil"></div>
 
     <script>
+        const btn = document.getElementById("btn");
+        let isSubmitting = false;
+        // data wilayah
+        const dataWilayah = {
+            "Lampung": [
+                "Lampung Barat",
+                "Lampung Selatan",
+                "Lampung Tengah",
+                "Lampung Timur",
+                "Lampung Utara",
+                "Mesuji",
+                "Pesawaran",
+                "Pesisir Barat",
+                "Pringsewu",
+                "Tanggamus",
+                "Tulang Bawang",
+                "Tulang Bawang Barat",
+                "Way Kanan",
+                "Bandar Lampung",
+                "Metro"
+            ]
+        };
+        // data sektor pekerjaan
+        const dataSektor = [
+            "Factory Operator",
+            "Plantation Worker",
+            "Construction Worker",
+            "Domestic Helper",
+            "Caregiver",
+            "Elderly Caregiver",
+            "Shipyard Laborer",
+            "Manufacturing Staff",
+            "Service Crew",
+            "General Laborer",
+            "Spa Therapist",
+            "Message Therapist",
+            "Beauty Technician",
+            "Driver",
+            "Hotel Housekeeper",
+            "Software Engineer",
+            "Costumer Service BPO",
+            "Accountant",
+            "IT Consultant",
+            "Hospitality Manager",
+            "English Tutor",
+            "Regitered Nurse",
+            "Data Analyst",
+            "Petroleum Engineer",
+            "Medical Doctor",
+            "Heavy Equipment Mechanic",
+            "Guest Realtions Officer",
+            "Executive Chef",
+            "Sales Manager",
+            "Quanity Surveyor",
+            "Architect",
+            "Nursing Care",
+            "Building Cleaning",
+            "Agriculture",
+            "Food and Beverages Manufacturing", 
+            "Food Service Industry",
+            "Constucction",
+            "Shipbuilding and Ship Machinery",
+            "Accomodation Industry",
+            "Automobile Industry",
+            "Automobile Maintenance",
+            "Aviation",
+            "Machine Parts and Tooling",
+            "Industrial Machinery Manufacturing",
+            "Electric, Electronics and Infromation",
+            "Fishery and Aquaculture",
+
+        ]
+
+        // dropdown sektor
+        const sektorSelect = document.getElementById("sektor");
+        dataSektor.forEach(sektor => {
+            const option = document.createElement("option");
+            option.value = sektor;
+            option.textContent = sektor;
+            sektorSelect.appendChild(option);
+        })
+        // logic dropdwon kabupaten
+        const provinsi = document.getElementById("provinsi");
+        const kabupaten = document.getElementById("kabupaten");
+
+        provinsi.addEventListener("change", function () {
+            const selected = this.value;
+
+            kabupaten.innerHTML = '<option value="">-- Pilih Kabupaten --</option>';
+            if (!selected) {
+                kabupaten.disabled = true;
+                return;
+            }
+
+            kabupaten.disabled = false;
+
+            dataWilayah[selected].forEach(kab => {
+                const option = document.createElement("option");
+                option.value = kab;
+                option.textContent = kab;
+                kabupaten.appendChild(option);
+            });
+        })
+
+
+        // api negara
+        const negaraSelect = document.getElementById("negara");
+
+        // ambil negara dari data api
+        fetch("https://restcountries.com/v3.1/all?fields=name")
+            .then(res => res.json())
+            .then(data => {
+                // mnegurutkan negara sesuai alfabet
+                data.sort((a,b) => a.name.common.localeCompare(b.name.common));
+
+                data.forEach(country =>{
+                    const option = document.createElement("option");
+                    option.value = country.name.common;
+                    option.textContent = country.name.common;
+                    negaraSelect.appendChild(option);
+                });
+            })
+            .catch(err => {
+                console.error("Gagal load negara", err);
+            });
+
         document.getElementById("form").addEventListener("submit", function (e) {
             e.preventDefault();
+            // cegah double input
+            if (isSubmitting)
+                return;
+            isSubmitting = true;
+            btn.disabled = true;
+            btn.innerHTML = "mengirim...";
+
 
             const data = {
                 nama: document.getElementById("nama").value,
                 jk: document.getElementById("jk").value,
                 provinsi: document.getElementById("provinsi").value,
-                daerah: document.getElementById("daerah").value,
+                kabupaten: document.getElementById("kabupaten").value,
+                alamat: document.getElementById("alamat").value,
                 paspor: document.getElementById("paspor").value,
                 negara: document.getElementById("negara").value,
                 sektor: document.getElementById("sektor").value,
@@ -60,6 +214,12 @@
                 skema: document.getElementById("skema").value
             };
 
+
+            if (!data.nama || !data.hp || !data.skema) {
+                alert("Data wajib diisi");
+                return;
+            }
+
             fetch("http://localhost:3000/antrian", {
                 method: "POST",
                 headers: {
@@ -67,13 +227,31 @@
                 },
                 body: JSON.stringify(data)
             })
-                .then(res => res.json())
-                .then(res => {
-                    document.getElementById("hasil").innerHTML = `
-          <h3>Nomor Antrian: ${res.nomor}</h3>
-          <p>Nama: ${data.nama}</p>
-          <p>Mohon tunggu nomor dipanggil</p>
-        `;
+                .then(async res => {
+                    let body;
+                    try {
+                        body = await res.json();
+                    } catch {
+                        body = {};
+                    }
+                    return { status: res.status, body };
+                })
+                .then(({ status, body }) => {
+                    if (status === 200) {
+                        window.location.href = `hasil.html?nomor=${body.nomor}&nama=${data.nama}`;
+                    } else {
+                        alert(body.message || "Terjadi kesalahan");
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    alert("Server error");
+
+                })
+                .finally(() => {
+                    isSubmitting = false;
+                    btn.disabled = false;
+                    btn.innerHTML = "Ambil Antrian";
                 });
         });
     </script>

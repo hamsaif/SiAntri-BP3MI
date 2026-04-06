@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hasil Antrian</title>
+</head>
+<body>
+
+<h2>Nomor Antrian</h2>
+
+<div id="hasil"></div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+
+    const nomor = params.get("nomor");
+    const nama = params.get("nama");
+
+    document.getElementById("hasil").innerHTML = `
+        <h1>${nomor}</h1>
+        <p>Nama: ${nama}</p>
+        <p>Mohon tunggu nomor dipanggil</p>
+    `;
+</script>
+
+</body>
+</html>

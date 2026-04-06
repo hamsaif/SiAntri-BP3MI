@@ -2,8 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const { google } = require("googleapis");
 const app = express();
-let counter = 0;
-let dataAntrian = [];
+let lastRequest = {};
+let isProcessing = false;
 
 // link spredsheet : 
 // https://docs.google.com/spreadsheets/d/1u8QD8TtkEezK5TMr-gdLrtC_Zmpl-CTj3Xh4nqPjyao/edit?usp=sharing
@@ -26,11 +26,23 @@ async function getSheets() {
 app.use(cors());
 app.use(express.json());
 
-// testing api
+// 
 app.post("/antrian", async (req, res) => {
+
 
     try {
         const data = req.body;
+
+        const now = Date.now();
+
+        // buat key unik
+        const key = `${data.nama}-${data.hp}-${data.skema}`;
+
+        // cek apakah ada request sebelumnya
+        if (lastRequest[key] && (now -lastRequest[key] < 3000)) {
+            return res.status(429).json({ message: "Tunggu sebentar" });
+        }
+        lastRequest[key] = now;
 
         const sheets = await getSheets();
         const sheetName = getTodaySheetName();
@@ -39,16 +51,40 @@ app.post("/antrian", async (req, res) => {
         // ambil data untuk hitung nomor
         const getData = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${sheetName}!A2:A`,
+            range: `${sheetName}!A2:N`,
         });
 
-        const jumlah = getData.data.values ? getData.data.values.length : 0;
-        const nomor = String(jumlah + 1).padStart(3, "0");
+        const allData = getData.data.values || [];
+
+        // filter berdasarkan skema
+        const filtered = allData.filter(row => row[13] == data.skema);
+
+        // hitung nomor
+        const nomorUrut = filtered.length + 1;
+
+        // ambil prefix
+        const prefix = getPrefix(data.skema);
+
+        // buat nomor
+        const nomor = prefix + String(nomorUrut).padStart(3, "0");
+
+        // cek data terakhir sheet
+        const check = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${sheetName}!B2:N`,
+        });
+        const rows = check.data.values || [];
+
+        if (isProcessing){
+            return res.status(429).json({ message: "Tunggu sebentar..." });
+        }
+
+        isProcessing = true;
 
         // simpan ke spreadsheet
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${sheetName}!A:N`,
+            range: `${sheetName}!A:O`,
             valueInputOption: "RAW",
             requestBody: {
                 values: [
@@ -57,7 +93,8 @@ app.post("/antrian", async (req, res) => {
                         data.nama,
                         data.jk,
                         data.provinsi,
-                        data.daerah,
+                        data.kabupaten,
+                        data.alamat,
                         data.paspor,
                         data.negara,
                         data.sektor,
@@ -77,6 +114,8 @@ app.post("/antrian", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send("Error");
+    } finally {
+        isProcessing = false;
     }
 });
 
@@ -99,6 +138,13 @@ function getTodaySheetName() {
 
     return `Pelayanan_${dd}_${mm}_${yyyy}`;
 }
+// fungsi prefix skema
+function getPrefix(skema) {
+    if (skema === "SSW Mandiri") return "SSW";
+    if (skema === "Mandiri") return "M";
+    if (skema === "Cuti") return "C";
+    return "";
+}
 
 // cek sheet apakah hari ini sudah ad atau belum
 async function ensureSheetExists(sheets, sheetName) {
@@ -112,7 +158,7 @@ async function ensureSheetExists(sheets, sheetName) {
 
     if (!sheet) {
 
-        // 1. buat sheet baru tiap hari
+        // buat sheet baru tiap hari
         await sheets.spreadsheets.batchUpdate({
             spreadsheetId: SPREADSHEET_ID,
             requestBody: {
@@ -128,7 +174,9 @@ async function ensureSheetExists(sheets, sheetName) {
             }
         });
 
-        // 2. sheet id
+
+
+        // sheet id
         const newMeta = await sheets.spreadsheets.get({
             spreadsheetId: SPREADSHEET_ID
         });
@@ -141,20 +189,20 @@ async function ensureSheetExists(sheets, sheetName) {
 
         console.log("Sheet ID:", sheetId);
 
-        // 3. header
+        // buat header
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${sheetName}!A1:N1`,
+            range: `${sheetName}!A1:O1`,
             valueInputOption: "RAW",
             requestBody: {
                 values: [[
-                    "No", "Nama", "Jenis Kelamin", "Provinsi", "Daerah", "Paspor", "Negara",
+                    "No", "Nama", "Jenis Kelamin", "Provinsi","Kabupaten","Alamat", "Paspor", "Negara",
                     "Sektor", "Perusahaan", "Pendidikan", "Tgl OPP", "No HP", "Skema", "Status"
                 ]]
             }
         });
 
-        // 4. dropdown status
+        // dropdown status
         await sheets.spreadsheets.batchUpdate({
             spreadsheetId: SPREADSHEET_ID,
             requestBody: {
@@ -165,8 +213,8 @@ async function ensureSheetExists(sheets, sheetName) {
                                 sheetId: sheetId,
                                 startRowIndex: 1,
                                 endRowIndex: 1000,
-                                startColumnIndex: 13,
-                                endColumnIndex: 14
+                                startColumnIndex: 14,
+                                endColumnIndex: 15
                             },
                             rule: {
                                 condition: {
@@ -190,8 +238,8 @@ async function ensureSheetExists(sheets, sheetName) {
                                     sheetId: sheetId,
                                     startRowIndex: 1,
                                     endRowIndex: 1000,
-                                    startColumnIndex: 13,
-                                    endColumnIndex: 14
+                                    startColumnIndex: 14,
+                                    endColumnIndex: 15
                                 }],
                                 booleanRule: {
                                     condition: {
@@ -219,8 +267,8 @@ async function ensureSheetExists(sheets, sheetName) {
                                     sheetId: sheetId,
                                     startRowIndex: 1,
                                     endRowIndex: 1000,
-                                    startColumnIndex: 13,
-                                    endColumnIndex: 14
+                                    startColumnIndex: 14,
+                                    endColumnIndex: 15
                                 }],
                                 booleanRule: {
                                     condition: {
@@ -239,7 +287,7 @@ async function ensureSheetExists(sheets, sheetName) {
                             index: 0
                         }
                     },
-
+                    
                     // Sudah Dilayani
                     {
                         addConditionalFormatRule: {
@@ -248,8 +296,8 @@ async function ensureSheetExists(sheets, sheetName) {
                                     sheetId: sheetId,
                                     startRowIndex: 1,
                                     endRowIndex: 1000,
-                                    startColumnIndex: 13,
-                                    endColumnIndex: 14
+                                    startColumnIndex: 14,
+                                    endColumnIndex: 15
                                 }],
                                 booleanRule: {
                                     condition: {
@@ -271,6 +319,7 @@ async function ensureSheetExists(sheets, sheetName) {
                 ]
             }
         });
+
 
 
     }
