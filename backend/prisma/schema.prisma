@@ -1,0 +1,35 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model Antrian {
+  id           Int      @id @default(autoincrement())
+  nomor        String
+  nama         String
+  jk           String
+  provinsi     String
+  kabupaten    String
+  alamat       String
+  paspor       String
+  negara       String
+  sektor       String
+  perusahaan   String
+  pendidikan   String
+  tgl          DateTime
+  hp           String
+  skema        String
+  status       String   @default("Belum Dilayani")
+  createdAt    DateTime @default(now())
+
+  // retry mechanism
+  @@unique([nomor,tgl,skema])
+}

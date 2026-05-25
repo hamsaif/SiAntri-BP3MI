@@ -29,9 +29,9 @@
         </select><br><br>
         <input type="text" id="alamat" placeholder="Alamat Lengkap" required><br><br>
         <input type="text" id="paspor" placeholder="No Paspor" maxlength="9" minlength="9" required><br><br>
-        <select name="" id="negara" >
-            <option value="">-- Negara Penempatan --</option>
-        </select><br><br>
+        <input type="text" id="negara" placeholder="-- Negara Penempatan --" required autocomplete="off">
+        <div id="dropdownNegara" class="dropdown"></div>
+        <br><br>
         <select name="" id="sektor">
             <option value="">-- Pilih Sektor Pekrjaan --</option>
         </select><br><br>
@@ -120,7 +120,7 @@
             "Nursing Care",
             "Building Cleaning",
             "Agriculture",
-            "Food and Beverages Manufacturing", 
+            "Food and Beverages Manufacturing",
             "Food Service Industry",
             "Constucction",
             "Shipbuilding and Ship Machinery",
@@ -166,27 +166,63 @@
             });
         })
 
-
         // api negara
-        const negaraSelect = document.getElementById("negara");
+        let dataNegara = [];
 
         // ambil negara dari data api
         fetch("https://restcountries.com/v3.1/all?fields=name")
             .then(res => res.json())
             .then(data => {
                 // mnegurutkan negara sesuai alfabet
-                data.sort((a,b) => a.name.common.localeCompare(b.name.common));
-
-                data.forEach(country =>{
-                    const option = document.createElement("option");
-                    option.value = country.name.common;
-                    option.textContent = country.name.common;
-                    negaraSelect.appendChild(option);
-                });
-            })
-            .catch(err => {
-                console.error("Gagal load negara", err);
+                dataNegara = data.map(c => c.name.common)
+                    .sort((a, b) => a.localeCompare(b));
+                setupDropdownNegara("negara", "dropdownNegara", dataNegara);
             });
+
+        function setupDropdownNegara(inputId, dropdownId, datalist) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+
+            input.addEventListener("focus", () => {
+                showList(datalist);
+            });
+
+            input.addEventListener("input", () => {
+                const keyword = input.value.toLowerCase();
+                const filtered = datalist.filter(item =>
+                    item.toLowerCase().includes(keyword));
+                showList(filtered);
+                input.dataset.selected = "false";
+            });
+
+            function showList(list) {
+                dropdown.innerHTML = "";
+                dropdown.style.display = "block";
+
+                list.forEach(item => {
+                    const div = document.createElement("div");
+                    div.textContent = item;
+
+                    div.onclick = () => {
+                        input.value = item;
+                        input.dataset.selected = "true";
+                        dropdown.style.display = "none";
+                    };
+
+                    dropdown.appendChild(div);
+
+                });;
+            }
+
+            document.addEventListener("click", (e) => {
+                if (!input.contains(e.target)&& !dropdown.contains(e.target)) {
+                    dropdown.style.display = "none";
+                }
+            });
+        }
+
+
+
 
         document.getElementById("form").addEventListener("submit", function (e) {
             e.preventDefault();
@@ -213,6 +249,15 @@
                 hp: document.getElementById("hp").value,
                 skema: document.getElementById("skema").value
             };
+
+            // VALIDASI NEGARA HARUS DARI LIST
+            if (!dataNegara.includes(data.negara)) {
+                alert("Pilih negara dari daftar");
+                isSubmitting = false;
+                btn.disabled = false;
+                btn.innerHTML = "Ambil Antrian";
+                return;
+            }
 
 
             if (!data.nama || !data.hp || !data.skema) {
@@ -253,8 +298,41 @@
                     btn.disabled = false;
                     btn.innerHTML = "Ambil Antrian";
                 });
+
+                if(documnet.getElementById("negara").dataset.selected !== "true") {
+                    alert("Pilih negara dari daftar");
+                    isSubmitting = false;
+                    btn.disabled = false;
+                    btn.innerHTML = "Ambil Antrian";
+                    return;
+                }
+
         });
+
+
     </script>
+
+    <style>
+        .dropdown {
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+            position: absolute;
+            background: white;
+            width: 100%;
+            z-index: 999;
+        }
+
+        .dropdown div {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .dropdown div:hover {
+            background: #eee;
+        }
+    </style>
 </body>
 
 </html>
