@@ -1,127 +1,63 @@
-
 <template>
     <main class="bp3mi-page">
 
         <section class="relative bp3mi-card max-w-5xl w-full">
-            <header  class="text-center space-y-2 mb-4" >
+            <header class="text-center space-y-2 mb-4">
                 <h1 class="bp3mi-subtitle">BP3MI</h1>
                 <p class="bp3mi-title">Form Antrian</p>
             </header>
             <form class="space-y-6" @submit.prevent="handleSubmit">
                 <fieldset class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- NAMA -->
-                    <BaseInput
-                        label="Nama Lengkap"
-                        placeholder="Masukkan nama lengkap"
-                        v-model="form.nama"
-                        required
-                    />
+                    <BaseInput label="Nama Lengkap" placeholder="Masukkan nama lengkap" v-model="form.nama" required />
 
                     <!-- JK -->
-                    <BaseSelect
-                        label="Jenis Kelamin"
-                        placeholder="-- Pilih Jenis Kelamin --"
-                        :options="jkOptions"
-                        v-model="form.jk"
-                        required
-                    />
+                    <BaseSelect label="Jenis Kelamin" placeholder="-- Pilih Jenis Kelamin --" :options="jkOptions"
+                        v-model="form.jk" required />
                     <!-- PROVINSI -->
 
-                     <BaseSelect
-                        label="Provinsi"
-                        placeholder="-- Pilih Provinsi --"
-                        :options="provinsiOptions"
-                        v-model="form.provinsi"
-                        required
-                    />
+                    <BaseSelect label="Provinsi" placeholder="-- Pilih Provinsi --" :options="provinsiOptions"
+                        v-model="form.provinsi" required />
 
                     <!-- KABUPATEN -->
-                    <BaseSelect
-                        label="Kabupaten"
-                        placeholder="-- Pilih Kabuaten --"
-                        :options="kabupatenOptions"
-                        v-model="form.kabupaten"
-                        :disabled="!form.provinsi"
-                        required
-                    />
-                    
+                    <BaseSelect label="Kabupaten" placeholder="-- Pilih Kabuaten --" :options="kabupatenOptions"
+                        v-model="form.kabupaten" :disabled="!form.provinsi" required />
+
 
                     <!-- ALAMAT -->
-                    <BaseInput
-                        label="Alamat"
-                        placeholder="Masukkan Alamat Lengkap"
-                        v-model="form.alamat"
-                        required
-                    />
+                    <BaseInput label="Alamat" placeholder="Masukkan Alamat Lengkap" v-model="form.alamat" required />
 
                     <!-- PASPOR -->
-                    <BaseInput
-                        label="Paspor"
-                        placeholder="Masukkan Paspor"
-                        v-model="form.paspor"
-                        maxlength="9"
-                        required
-                    />
+                    <BaseInput label="Paspor" placeholder="Masukkan Paspor" v-model="form.paspor" maxlength="9"
+                        required />
 
                     <!-- NEGARA -->
-                    <BaseAutoComplete
-                        label="Negara"
-                        placeholder="Pilih Negara"
-                        :items="dataNegara"
-                        v-model="form.negara"
-                    />
+                    <BaseAutoComplete label="Negara" placeholder="Pilih Negara" :items="dataNegara"
+                        v-model="form.negara" />
 
-                    <BaseAutoComplete
-                        label="Sektor"
-                        placeholder="Pilih Sektor Pekerjaan"
-                        :items="dataSektor"
-                        v-model="form.sektor"
-                    />
+                    <BaseAutoComplete label="Sektor" placeholder="Pilih Sektor Pekerjaan" :items="dataSektor"
+                        v-model="form.sektor" />
 
 
                     <!-- PERUSAHAAN -->
-                    <BaseInput
-                        label="Perusahaan"
-                        placeholder="Masukkan nama perusahaan"
-                        v-model="form.perusahaan"
-                        required
-                    />
+                    <BaseInput label="Perusahaan" placeholder="Masukkan nama perusahaan" v-model="form.perusahaan"
+                        required />
 
                     <!-- PENDIDIKAN -->
-                    <BaseSelect
-                        label="Pendidikan"
-                        placeholder="-- Pendidikan Terakhir --"
-                        :options="pendidikanOptions"
-                        v-model="form.pendidikan"
-                        required
-                    />
+                    <BaseSelect label="Pendidikan" placeholder="-- Pendidikan Terakhir --" :options="pendidikanOptions"
+                        v-model="form.pendidikan" required />
 
                     <!-- TGL -->
-                    <BaseInput
-                        label="Tanggal OPP"
-                        type="date"
-                        v-model="form.tgl"
-                        required
-                    />
+                    <BaseInput label="Tanggal OPP" type="date" v-model="form.tgl" required />
 
 
                     <!-- NO HP -->
-                    <BaseInput
-                        label="Nomor HP"
-                        placeholder="Masukkan Nomor HP"
-                        v-model="form.hp"
-                        required
-                    />
+                    <BaseInput label="Nomor HP" placeholder="Masukkan Nomor HP" v-model="form.hp" required />
 
 
                     <!-- SKEMA -->
-                    <BaseSelect
-                        label="Skema"
-                        placeholder="-- Pilih Skema --"
-                        :options="skemaOptions"
-                        v-model="form.skema"
-                        required
-                    />
+                    <BaseSelect label="Skema" placeholder="-- Pilih Skema --" :options="skemaOptions"
+                        v-model="form.skema" required />
                 </fieldset>
                 <button class="bp3mi-button" type="submit" :disabled="isLoading">
                     {{ isLoading ? "Memproses..." : "Ambil Antrian" }}
@@ -134,7 +70,7 @@
 
 <script setup>
 
-import { ref, onMounted,computed, watch } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
@@ -143,7 +79,7 @@ const router = useRouter()
 
 
 
-const jkOptions =[
+const jkOptions = [
     {
         label: "Laki-Laki",
         value: "L"
@@ -240,10 +176,10 @@ const form = ref({
 });
 
 watch(
-  () => form.value.provinsi,
-  () => {
-    handleProvinsi()
-  }
+    () => form.value.provinsi,
+    () => {
+        handleProvinsi()
+    }
 )
 
 const isLoading = ref(false)
@@ -266,6 +202,10 @@ const handleSubmit = async () => {
 
     if (!dataSektor.value.includes(form.value.sektor)) {
         alert("Pilih sektor dari daftar!");
+        return;
+    }
+    if (!/^[A-Za-z0-9]{9}$/.test(form.value.paspor)) {
+        alert("Nomor paspor harus terdiri dari 9 karakter");
         return;
     }
 

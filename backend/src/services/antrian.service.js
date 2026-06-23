@@ -19,7 +19,7 @@ const create = async (data) => {
 
   // JAM OPERASIONAL
   const hour = new Date().getHours();
-  if (hour < 8 || hour >= 24) {
+  if (hour < 8 || hour >= 22.00) {
     throw { status: 403, message: "Layanan tutup" };
   }
 

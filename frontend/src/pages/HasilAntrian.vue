@@ -49,11 +49,7 @@
       </article>
 
       <footer>
-        <div class="grid gap-3 md:grid-cols-2">
-
-          <button class="bp3mi-button" @click="window.print()">
-            Cetak Antrian
-          </button>
+        <div class="grid gap-3 md:grid-cols-1">
 
           <button class="bp3mi-button" @click="$router.push('/')">
             Kembali
